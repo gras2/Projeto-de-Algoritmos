@@ -2,7 +2,7 @@ pip install requests
 
 import requests
 
-url = ""
+url = "https://docs.google.com/spreadsheets/d/1ubWnML_cP17MArgZrQuXVJe9OGaT00CRE9bUhRWP-6M/edit#gid=0"
 nome_do_arquivo = "Cidades e pontos turísticos de Pernambuco"
 
 # Download do arquivo
