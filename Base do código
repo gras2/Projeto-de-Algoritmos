@@ -1,3 +1,23 @@
+pip install requests
+
+import requests
+
+url = ""
+nome_do_arquivo = "Cidades e pontos turísticos de Pernambuco"
+
+# Download do arquivo
+response = requests.get(url)
+
+# Verificando se a requisição foi bem sucedida
+if response.status_code == 200:
+    # Salva o conteúdo do arquivo em um arquivo local
+    with open(nome_do_arquivo, 'wb') as f:
+        f.write(response.content)
+    print("Arquivo baixado com sucesso!")
+else:
+    print("Falha ao baixar o arquivo.")
+
+
 class Graph:
     def __init__(self, vertices):
         self.V = vertices
