@@ -1,92 +1,77 @@
-pip install requests
+import pandas as pd
+import numpy as np
+from scipy.spatial.distance import euclidean
 
-import requests
+class Edge:
+    def _init_(self, src, dest, weight):
+        self.src = src
+        self.dest = dest
+        self.weight = weight
 
-url = "https://docs.google.com/spreadsheets/d/1ubWnML_cP17MArgZrQuXVJe9OGaT00CRE9bUhRWP-6M/edit#gid=0"
-nome_do_arquivo = "Cidades e pontos turísticos de Pernambuco"
+def create_edges(data):
+    edges = []
+    for i in range(len(data)):
+        for j in range(i+1, len(data)):
+            weight = euclidean((data.iloc[i]['Latitude'], data.iloc[i]['Longitude']),
+                               (data.iloc[j]['Latitude'], data.iloc[j]['Longitude']))
+            edges.append(Edge(i, j, weight))
+    return edges
 
-# Download do arquivo
-response = requests.get(url)
+def find(parent, i):
+    if parent[i] == i:
+        return i
+    return find(parent, parent[i])
 
-# Verificando se a requisição foi bem sucedida
-if response.status_code == 200:
-    # Salva o conteúdo do arquivo em um arquivo local
-    with open(nome_do_arquivo, 'wb') as f:
-        f.write(response.content)
-    print("Arquivo baixado com sucesso!")
-else:
-    print("Falha ao baixar o arquivo.")
+def union(parent, rank, x, y):
+    xroot = find(parent, x)
+    yroot = find(parent, y)
+    if rank[xroot] < rank[yroot]:
+        parent[xroot] = yroot
+    elif rank[xroot] > rank[yroot]:
+        parent[yroot] = xroot
+    else:
+        parent[yroot] = xroot
+        rank[xroot] += 1
 
+def kruskal(edges, N):
+    result = [] # This will store the resultant MST
+    i = 0 # An index variable, used for sorted edges
+    e = 0 # An index variable, used for result[]
+    edges = sorted(edges, key=lambda item: item.weight)
+    parent = []; rank = []
 
-class Graph:
-    def __init__(self, vertices):
-        self.V = vertices
-        self.graph = []
+    for node in range(N):
+        parent.append(node)
+        rank.append(0)
+    
+    while e < N - 1:
+        edge = edges[i]
+        i += 1
+        x = find(parent, edge.src)
+        y = find(parent, edge.dest)
 
-    def add_edge(self, u, v, w):
-        self.graph.append([u, v, w])
+        if x != y:
+            e += 1
+            result.append(edge)
+            union(parent, rank, x, y)
+    
+    return result
 
-    def find(self, parent, i):
-        if parent[i] == i:
-            return i
-        return self.find(parent, parent[i])
+def load_data(file_path):
+    # Carregar os dados do arquivo Excel
+    data = pd.read_excel(file_path)
+    return data
 
-    def union(self, parent, rank, x, y):
-        x_root = self.find(parent, x)
-        y_root = self.find(parent, y)
+# Carregar dados
+file_path = '/path/to/Cidades e pontos turísticos de Pernambuco CORRETO.xlsx'
+data = load_data(file_path)
 
-        if rank[x_root] < rank[y_root]:
-            parent[x_root] = y_root
-        elif rank[x_root] > rank[y_root]:
-            parent[y_root] = x_root
-        else:
-            parent[y_root] = x_root
-            rank[x_root] += 1
+# Criar arestas
+edges = create_edges(data)
 
-    def kruskal_mst(self):
-        result = []
+# Aplicar Kruskal
+mst = kruskal(edges, len(data))
 
-        self.graph = sorted(self.graph, key=lambda item: item[2])
-
-        parent = []
-        rank = []
-
-        for node in range(self.V):
-            parent.append(node)
-            rank.append(0)
-
-        i = 0
-        e = 0
-
-        while e < self.V - 1 and i < len(self.graph):
-            u, v, w = self.graph[i]
-            i += 1
-            x = self.find(parent, u)
-            y = self.find(parent, v)
-
-            if x != y:
-                e += 1
-                result.append([u, v, w])
-                self.union(parent, rank, x, y)
-
-        return result
-
-# Criando o grafo com base nos dados fornecidos
-g = Graph(90)
-
-# Adicionando as arestas com pesos
-edges = [
-    ("Abreu e Lima", "Parque Natural Municipal Professor João Vasconcelos Sobrinho", 1),
-    # Adicione as outras arestas com seus respectivos pesos aqui
-]
-
-for edge in edges:
-    g.add_edge(edge[0], edge[1], edge[2])
-
-# Encontrando a árvore geradora mínima usando o algoritmo de Kruskal
-mst = g.kruskal_mst()
-
-# Imprimindo a árvore geradora mínima
-print("Árvore Geradora Mínima:")
-for u, v, weight in mst:
-    print(f"{u} - {v}: {weight}")
+# Para imprimir os resultados
+for edge in mst:
+    print(f"{data.iloc[edge.src]['Ponto turístico']} -- {data.iloc[edge.dest]['Ponto turístico']}: {edge.weight}")
