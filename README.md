@@ -20,7 +20,7 @@ Copy code
 pip install pandas numpy scipy
 
 # Como Usar
-Certifique-se de que seus dados estejam organizados em um arquivo Excel (Cidades e pontos turísticos de Pernambuco CORRETO.xlsx neste exemplo).
+ Certifique-se de que seus dados estejam organizados em um arquivo Excel (Cidades e pontos turísticos de Pernambuco CORRETO.xlsx neste exemplo).
 Execute o script digitando o seguinte comando no terminal ou prompt de comando:
 bash
 Copy code
