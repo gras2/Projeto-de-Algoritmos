@@ -1,0 +1,72 @@
+import pandas as pd
+import numpy as np
+from scipy.spatial.distance import euclidean
+
+class Edge:
+    def _init_(self, src, dest, weight):
+        self.src = src
+        self.dest = dest
+        self.weight = weight
+
+def create_edges(data):
+    edges = []
+    for i in range(len(data)):
+        for j in range(i+1, len(data)):
+            weight = euclidean((data.iloc[i]['Latitude'], data.iloc[i]['Longitude']),
+                               (data.iloc[j]['Latitude'], data.iloc[j]['Longitude']))
+            edges.append(Edge(i, j, weight))
+    return edges
+
+def find(parent, i):
+    if parent[i] == i:
+        return i
+    return find(parent, parent[i])
+
+def union(parent, rank, x, y):
+    xroot = find(parent, x)
+    yroot = find(parent, y)
+    if rank[xroot] < rank[yroot]:
+        parent[xroot] = yroot
+    elif rank[xroot] > rank[yroot]:
+        parent[yroot] = xroot
+    else:
+        parent[yroot] = xroot
+        rank[xroot] += 1
+
+def kruskal(edges, N):
+    result = [] # This will store the resultant MST
+    i = 0 # An index variable, used for sorted edges
+    e = 0 # An index variable, used for result[]
+    edges = sorted(edges, key=lambda item: item.weight)
+    parent = []; rank = []
+
+    for node in range(N):
+        parent.append(node)
+        rank.append(0)
+    
+    while e < N - 1:
+        edge = edges[i]
+        i += 1
+        x = find(parent, edge.src)
+        y = find(parent, edge.dest)
+
+        if x != y:
+            e += 1
+            result.append(edge)
+            union(parent, rank, x, y)
+    
+    return result
+
+# Carregar dados
+file_path = 'Cidades e pontos turísticos de Pernambuco CORRETO.xlsx'
+data = pd.read_excel(file_path)
+
+# Criar arestas
+edges = create_edges(data)
+
+# Aplicar Kruskal
+mst = kruskal(edges, len(data))
+
+# Para imprimir os resultados
+for edge in mst:
+    print(f"{data.iloc[edge.src]['Cidades mais conhecidas de Pernambuco']} -- {data.iloc[edge.dest]['Cidades mais conhecidas de Pernambuco']}: {edge.weight}")
